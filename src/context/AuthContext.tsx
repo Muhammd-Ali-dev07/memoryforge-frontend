@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string) => {
-    const response = await fetch('http://13.60.92.19:8080/api/auth/login', {
+    const response = await fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (username: string, password: string, email?: string) => {
-    const response = await fetch('http://13.60.92.19:8080/api/auth/register', {
+    const response = await fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password, email }),
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     if (user) {
-      fetch('http://13.60.92.19:8080/api/auth/logout', {
+      fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/auth/logout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${user.sessionToken}` },
       }).catch(console.error);
