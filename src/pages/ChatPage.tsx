@@ -74,7 +74,7 @@ const ChatPage: React.FC = () => {
 
   const loadChats = async () => {
     try {
-      const response = await fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/chat/list', {
+      const response = await fetch('http://13.60.92.19:8080/api/chat/list', {
         headers: { Authorization: `Bearer ${user?.sessionToken}` }
       });
       if (response.ok) {
@@ -91,7 +91,7 @@ const ChatPage: React.FC = () => {
 
   const loadMessages = async (chatId: string) => {
     try {
-      const response = await fetch(`https://postmeningeal-unversified-casandra.ngrok-free.dev/api/chat/${chatId}/messages`, {
+      const response = await fetch(`http://13.60.92.19:8080/api/chat/${chatId}/messages`, {
         headers: { Authorization: `Bearer ${user?.sessionToken}` }
       });
       if (response.ok) {
@@ -105,7 +105,7 @@ const ChatPage: React.FC = () => {
 
   const loadDocuments = async () => {
     try {
-      const response = await fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/documents/list', {
+      const response = await fetch('http://13.60.92.19:8080/api/documents/list', {
         headers: { Authorization: `Bearer ${user?.sessionToken}` }
       });
       if (response.ok) {
@@ -119,7 +119,7 @@ const ChatPage: React.FC = () => {
 
   const createNewChat = async () => {
     try {
-      const response = await fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/chat/create', {
+      const response = await fetch('http://13.60.92.19:8080/api/chat/create', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${user?.sessionToken}`,
@@ -146,7 +146,7 @@ const ChatPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/chat/message', {
+      const response = await fetch('http://13.60.92.19:8080/api/chat/message', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${user?.sessionToken}`,
@@ -193,7 +193,7 @@ const ChatPage: React.FC = () => {
       const content = e.target?.result as string;
 
       try {
-        const response = await fetch('https://postmeningeal-unversified-casandra.ngrok-free.dev/api/documents/upload', {
+        const response = await fetch('http://13.60.92.19:8080/api/documents/upload', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${user?.sessionToken}`,
