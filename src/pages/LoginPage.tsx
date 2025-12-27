@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Brain, LogIn, AlertCircle } from 'lucide-react';
+import { Brain, LogIn, AlertCircle, Loader2 } from 'lucide-react';
 import './AuthPages.css';
 
 const LoginPage: React.FC = () => {
@@ -15,13 +15,26 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Basic validation
+    if (!username.trim()) {
+      setError('Please enter your username');
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(username, password);
+      await login(username.trim(), password);
       navigate('/chat');
-    } catch (err) {
-      setError('Invalid username or password');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Invalid username or password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -59,8 +72,9 @@ const LoginPage: React.FC = () => {
                 placeholder="Enter your username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                required
+                disabled={loading}
                 autoFocus
+                autoComplete="username"
               />
             </div>
 
@@ -72,13 +86,21 @@ const LoginPage: React.FC = () => {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                disabled={loading}
+                autoComplete="current-password"
               />
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+            <button 
+              type="submit" 
+              className="btn btn-primary btn-full" 
+              disabled={loading || !username.trim() || !password}
+            >
               {loading ? (
-                <div className="spinner"></div>
+                <>
+                  <Loader2 className="spinner-icon" size={20} />
+                  <span>Signing in...</span>
+                </>
               ) : (
                 <>
                   <LogIn size={20} />

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Brain, UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Brain, UserPlus, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import './AuthPages.css';
 
 const RegisterPage: React.FC = () => {
@@ -18,8 +18,19 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
+    // Validation
+    if (!username.trim()) {
+      setError('Please enter a username');
+      return;
+    }
+
+    if (username.trim().length < 3) {
+      setError('Username must be at least 3 characters');
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter a password');
       return;
     }
 
@@ -28,13 +39,19 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await register(username, password, email);
+      await register(username.trim(), password, email.trim() || undefined);
       navigate('/chat');
-    } catch (err) {
-      setError('Username already exists or registration failed');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message || 'Registration failed. Username may already exist.');
     } finally {
       setLoading(false);
     }
@@ -42,6 +59,7 @@ const RegisterPage: React.FC = () => {
 
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordStrong = password.length >= 6;
+  const usernameValid = username.trim().length >= 3;
 
   return (
     <div className="auth-page">
@@ -72,13 +90,24 @@ const RegisterPage: React.FC = () => {
               <input
                 type="text"
                 className="input"
-                placeholder="Choose a username"
+                placeholder="Choose a username (min 3 characters)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                required
+                disabled={loading}
                 autoFocus
-                minLength={3}
+                autoComplete="username"
               />
+              {username.trim() && (
+                <div className="password-strength">
+                  {usernameValid ? (
+                    <span className="strength-good">
+                      <CheckCircle2 size={16} /> Valid username
+                    </span>
+                  ) : (
+                    <span className="strength-weak">Minimum 3 characters required</span>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -89,6 +118,8 @@ const RegisterPage: React.FC = () => {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                autoComplete="email"
               />
             </div>
 
@@ -97,11 +128,11 @@ const RegisterPage: React.FC = () => {
               <input
                 type="password"
                 className="input"
-                placeholder="Create a strong password"
+                placeholder="Create a strong password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
+                disabled={loading}
+                autoComplete="new-password"
               />
               {password && (
                 <div className="password-strength">
@@ -124,7 +155,8 @@ const RegisterPage: React.FC = () => {
                 placeholder="Re-enter your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                disabled={loading}
+                autoComplete="new-password"
               />
               {confirmPassword && (
                 <div className="password-strength">
@@ -139,9 +171,16 @@ const RegisterPage: React.FC = () => {
               )}
             </div>
 
-            <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+            <button 
+              type="submit" 
+              className="btn btn-primary btn-full" 
+              disabled={loading || !usernameValid || !passwordStrong || !passwordsMatch}
+            >
               {loading ? (
-                <div className="spinner"></div>
+                <>
+                  <Loader2 className="spinner-icon" size={20} />
+                  <span>Creating account...</span>
+                </>
               ) : (
                 <>
                   <UserPlus size={20} />

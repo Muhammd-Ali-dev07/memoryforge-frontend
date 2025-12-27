@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// API URL from environment variable or fallback
+const API_URL = process.env.REACT_APP_API_URL || 'http://13.60.92.19:8080';
+
 interface User {
   userId: string;
   username: string;
@@ -9,6 +12,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string, email?: string) => Promise<void>;
   logout: () => void;
@@ -18,65 +22,89 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Load user from localStorage
-    const savedUser = localStorage.getItem('memoryforge_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem('memoryforge_user');
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.error('Failed to load user from localStorage:', error);
+      localStorage.removeItem('memoryforge_user');
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   const login = async (username: string, password: string) => {
-    const response = await fetch('http://13.60.92.19:8080/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Invalid credentials');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Invalid credentials');
+      }
+
+      const data = await response.json();
+      const userData: User = {
+        userId: data.userId,
+        username: data.username,
+        sessionToken: data.sessionToken,
+      };
+
+      setUser(userData);
+      localStorage.setItem('memoryforge_user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    const userData: User = {
-      userId: data.userId,
-      username: data.username,
-      sessionToken: data.sessionToken,
-    };
-
-    setUser(userData);
-    localStorage.setItem('memoryforge_user', JSON.stringify(userData));
   };
 
   const register = async (username: string, password: string, email?: string) => {
-    const response = await fetch('http://13.60.92.19:8080/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, email }),
-    });
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, email: email || '' }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Registration failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      const userData: User = {
+        userId: data.userId,
+        username: data.username,
+        sessionToken: data.sessionToken,
+      };
+
+      setUser(userData);
+      localStorage.setItem('memoryforge_user', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
     }
-
-    const data = await response.json();
-    const userData: User = {
-      userId: data.userId,
-      username: data.username,
-      sessionToken: data.sessionToken,
-    };
-
-    setUser(userData);
-    localStorage.setItem('memoryforge_user', JSON.stringify(userData));
   };
 
   const logout = () => {
     if (user) {
-      fetch('http://13.60.92.19:8080/api/auth/logout', {
+      // Call logout endpoint (fire and forget)
+      fetch(`${API_URL}/api/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${user.sessionToken}` },
-      }).catch(console.error);
+      }).catch((error) => {
+        console.error('Logout request failed:', error);
+      });
     }
 
     setUser(null);
@@ -84,7 +112,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        isAuthenticated: !!user, 
+        isLoading,
+        login, 
+        register, 
+        logout 
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
