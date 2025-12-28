@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // API URL from environment variable or fallback
 const API_URL = process.env.REACT_APP_API_URL || 'http://13.60.92.19:8080';
-
 interface User {
   userId: string;
   username: string;
